@@ -14,7 +14,14 @@ def test_currently_playing_requires_auth() -> None:
     assert response.status_code == 401
 
 
-def test_me_does_not_return_tokens() -> None:
+def test_me_returns_unauthenticated_contract() -> None:
+    response = client.get("/auth/me")
+
+    assert response.status_code == 200
+    assert response.json() == {"authenticated": False, "spotify_user": None}
+
+
+def test_me_returns_authenticated_contract_without_tokens() -> None:
     session = session_serializer.dumps(
         {
             "access_token": "secret-access",
@@ -28,7 +35,7 @@ def test_me_does_not_return_tokens() -> None:
     )
 
     assert response.status_code == 200
-    assert response.json() == {"authenticated": True}
+    assert response.json() == {"authenticated": True, "spotify_user": None}
     assert "access_token" not in response.text
     assert "refresh_token" not in response.text
 

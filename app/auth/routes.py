@@ -3,6 +3,7 @@ import secrets
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
+from app.auth.schemas import AuthMeResponse
 from app.auth.session import (
     create_session_cookie_value,
     delete_oauth_state_cookie,
@@ -48,6 +49,6 @@ def logout() -> JSONResponse:
     return response
 
 
-@router.get("/me")
-def me(request: Request) -> dict[str, bool]:
-    return {"authenticated": load_session_payload(request) is not None}
+@router.get("/me", response_model=AuthMeResponse)
+def me(request: Request) -> AuthMeResponse:
+    return AuthMeResponse(authenticated=load_session_payload(request) is not None)
