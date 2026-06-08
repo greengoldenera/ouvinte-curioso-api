@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
-from app.auth.routes import serializer
+from app.auth.session import session_serializer
+from app.core.config import settings
 from app.main import app
 
 
@@ -14,7 +15,7 @@ def test_currently_playing_requires_auth() -> None:
 
 
 def test_me_does_not_return_tokens() -> None:
-    session = serializer.dumps(
+    session = session_serializer.dumps(
         {
             "access_token": "secret-access",
             "refresh_token": "secret-refresh",
@@ -23,7 +24,7 @@ def test_me_does_not_return_tokens() -> None:
 
     response = client.get(
         "/auth/me",
-        cookies={"oc_session": session},
+        cookies={settings.session_cookie_name: session},
     )
 
     assert response.status_code == 200

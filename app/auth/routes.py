@@ -2,13 +2,12 @@ import secrets
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
-from itsdangerous import BadSignature, URLSafeSerializer
 
+from app.auth.session import create_session_cookie_value, load_session_payload
 from app.auth.spotify_oauth import build_authorize_url, exchange_code_for_token
 from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-serializer = URLSafeSerializer(settings.app_secret_key, salt="spotify-session")
 
 
 @router.get("/spotify/login")
@@ -33,13 +32,7 @@ async def spotify_callback(request: Request, code: str, state: str) -> JSONRespo
         raise HTTPException(status_code=400, detail="Invalid OAuth state")
 
     token_data = await exchange_code_for_token(code)
-    session_value = serializer.dumps(
-        {
-            "access_token": token_data["access_token"],
-            "refresh_token": token_data.get("refresh_token"),
-            "expires_in": token_data.get("expires_in"),
-        }
-    )
+    session_value = create_session_cookie_value(token_data)
 
     response = JSONResponse({"authenticated": True})
     response.set_cookie(
@@ -71,13 +64,4 @@ def logout() -> JSONResponse:
 
 @router.get("/me")
 def me(request: Request) -> dict[str, bool]:
-    session_cookie = request.cookies.get(settings.session_cookie_name)
-    if not session_cookie:
-        return {"authenticated": False}
-
-    try:
-        serializer.loads(session_cookie)
-    except BadSignature:
-        return {"authenticated": False}
-
-    return {"authenticated": True}
+    return {"authenticated": load_session_payload(request) is not None}
