@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: ouvinte_curioso_postgres
+    environment:
+      POSTGRES_DB: ouvinte_curioso
+      POSTGRES_USER: ouvinte
+      POSTGRES_PASSWORD: ouvinte_local_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ouvinte_curioso_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  ouvinte_curioso_postgres_data:
