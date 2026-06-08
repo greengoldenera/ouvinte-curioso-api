@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi import HTTPException, Request
 from itsdangerous import BadSignature, URLSafeSerializer
+from starlette.responses import Response
 
 from app.core.config import settings
 
@@ -16,6 +17,44 @@ def create_session_cookie_value(token_data: Mapping[str, Any]) -> str:
             "refresh_token": token_data.get("refresh_token"),
             "expires_in": token_data.get("expires_in"),
         }
+    )
+
+
+def set_session_cookie(response: Response, value: str) -> None:
+    response.set_cookie(
+        key=settings.session_cookie_name,
+        value=value,
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        max_age=settings.session_cookie_max_age_seconds,
+    )
+
+
+def delete_session_cookie(response: Response) -> None:
+    response.delete_cookie(
+        settings.session_cookie_name,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+    )
+
+
+def set_oauth_state_cookie(response: Response, value: str) -> None:
+    response.set_cookie(
+        key=settings.oauth_state_cookie_name,
+        value=value,
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        max_age=settings.oauth_state_cookie_max_age_seconds,
+    )
+
+
+def delete_oauth_state_cookie(response: Response) -> None:
+    response.delete_cookie(
+        settings.oauth_state_cookie_name,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
     )
 
 
