@@ -1,80 +1,94 @@
 # Ouvinte Curioso API
 
-POC backend para validar FastAPI + Spotify OAuth + currently-playing.
+FastAPI backend for the Ouvinte Curioso MVP.
 
 ## Stack
 
-- Python
+- Python 3.13
 - FastAPI
 - uv
 - PostgreSQL via Docker Compose
+- Spotify Web API
 - pytest
 - ruff
-- Spotify Web API
 
-## Setup local
+## Local Setup
 
-`powershell
+```powershell
 uv sync
 Copy-Item .env.example .env
 docker compose up -d
-`
+```
 
-Preencha no .env:
+Set `APP_SECRET_KEY` and the Spotify values in `.env`:
 
-`env
+```env
 APP_SECRET_KEY=
 SPOTIFY_CLIENT_ID=
 SPOTIFY_CLIENT_SECRET=
-`
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:8000/auth/spotify/callback
+SPOTIFY_SCOPES=user-read-currently-playing user-read-playback-state
+```
 
-Redirect URI no Spotify Developer Dashboard:
+Use this redirect URI in the Spotify Developer Dashboard:
 
-`	ext
+```text
 http://127.0.0.1:8000/auth/spotify/callback
-`
+```
 
-## Rodar API
+## Run
 
-`powershell
+```powershell
 uv run uvicorn app.main:app --reload
-`
+```
 
-URLs:
-
-`	ext
-http://127.0.0.1:8000/health
-http://127.0.0.1:8000/docs
-http://127.0.0.1:8000/auth/spotify/login
-http://127.0.0.1:8000/me/player/currently-playing
-`
-
-## Testes e lint
-
-`powershell
+```powershell
 uv run pytest
 uv run ruff check .
-`
+```
 
-## Escopo da POC
+## Current Routes
 
-Inclui:
+- `GET /health`
+- `GET /auth/spotify/login`
+- `GET /auth/spotify/callback`
+- `POST /auth/logout`
+- `GET /auth/me`
+- `GET /me/player/currently-playing`
 
-* OAuth Spotify;
-* sessão server-side simplificada;
-* consulta de música atual;
-* DTO limpo para frontend;
-* testes básicos.
+## Auth Contract
 
-Não inclui:
+`GET /auth/me` returns:
 
-* frontend Angular;
-* IA;
-* letras;
-* deploy;
-* refresh token persistente;
-* banco modelado.
+```json
+{
+  "authenticated": false,
+  "spotify_user": null
+}
+```
 
-## Limitação conhecida
+or:
 
-O refresh token ainda não foi persistido em banco. Para a POC, a sessão usa cookie assinado.
+```json
+{
+  "authenticated": true,
+  "spotify_user": null
+}
+```
+
+`spotify_user` is intentionally `null` for now.
+
+## Docs
+
+- [Foundation](docs/foundation/Ouvinte_Curioso_Fundacao_v1.md)
+- [Backend stack decision](docs/decisions/001-backend-stack.md)
+- [Spotify auth POC audit](docs/auth/spotify-auth-poc-audit.md)
+- [Auth contract](docs/auth/auth-contract.md)
+
+## Current Limitations
+
+- Tokens are still stored inside a signed HTTP-only cookie.
+- There is no server-side session persistence yet.
+- There is no refresh token flow yet.
+- There is no Angular frontend yet.
+- There is no deploy yet.
