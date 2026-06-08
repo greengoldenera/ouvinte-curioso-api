@@ -22,17 +22,16 @@ def test_me_returns_unauthenticated_contract() -> None:
 
 
 def test_me_returns_authenticated_contract_without_tokens() -> None:
+    auth_client = TestClient(app)
     session = session_serializer.dumps(
         {
             "access_token": "secret-access",
             "refresh_token": "secret-refresh",
         }
     )
+    auth_client.cookies.set(settings.session_cookie_name, session)
 
-    response = client.get(
-        "/auth/me",
-        cookies={settings.session_cookie_name: session},
-    )
+    response = auth_client.get("/auth/me")
 
     assert response.status_code == 200
     assert response.json() == {"authenticated": True, "spotify_user": None}
