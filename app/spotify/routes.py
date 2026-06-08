@@ -11,7 +11,7 @@ serializer = URLSafeSerializer(settings.app_secret_key, salt="spotify-session")
 
 
 def get_session_tokens(request: Request) -> dict:
-    session_cookie = request.cookies.get("oc_session")
+    session_cookie = request.cookies.get(settings.session_cookie_name)
     if not session_cookie:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
